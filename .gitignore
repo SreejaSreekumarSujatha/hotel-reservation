@@ -1,0 +1,17 @@
+# Composer vendor folder
+/vendor/
+
+# Environment file
+.env
+
+# PHPStorm / VS Code files
+/.idea/
+/.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and cache
+*.log
+*.cache
