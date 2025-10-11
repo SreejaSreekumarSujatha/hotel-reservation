@@ -1,1 +1,0 @@
-CREATE TABLE `hotel_db`.`users` (`id` INT NOT NULL AUTO_INCREMENT , `name` VARCHAR(100) NOT NULL , `email` VARCHAR(150) NOT NULL , `password` VARCHAR(255) NOT NULL , `role` ENUM('admin','customer') NOT NULL DEFAULT 'customer' , `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`), UNIQUE `email_unique` (`email`)) ENGINE = InnoDB;

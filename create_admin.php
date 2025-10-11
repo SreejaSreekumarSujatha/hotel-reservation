@@ -7,7 +7,7 @@ $name  = 'Admin';
 $password_plain = 'Admin@123';
 
 // Prevent duplicate creation
-$stmt = $pdo->query("SELECT COUNT(*) AS c FROM users");
+$stmt = $pdo->query("SELECT COUNT(*) AS c FROM users where role='admin'");
 $row = $stmt->fetch();
 if ($row['c'] > 0) {
     die("Users already exist. Delete users if you want to run this again.");
