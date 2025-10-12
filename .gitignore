@@ -15,3 +15,5 @@ Thumbs.db
 # Logs and cache
 *.log
 *.cache
+
+create_admin.php
