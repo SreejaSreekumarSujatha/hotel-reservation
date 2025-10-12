@@ -34,3 +34,16 @@ function require_login() {
 function current_user_id() {
     return $_SESSION['user']['id'] ?? null;
 }
+
+
+function is_admin() {
+    return !empty($_SESSION['user']) && ($_SESSION['user']['role'] ?? '') === 'admin';
+}
+
+function require_admin() {
+    if (!is_admin()) {
+        flash_set('error', 'Admin access required.');
+        header('Location: login.php');
+        exit;
+    }
+}
