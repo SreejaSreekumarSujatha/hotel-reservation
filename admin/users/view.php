@@ -5,7 +5,7 @@
 </head>
 <body>
 <h2>Manage Users</h2>
-<a href="create.php">+ Add User</a> | <a href="../index.php">Dashboard</a>
+<a href="create.php">+ Add User</a> | <a href="../../index.php">Dashboard</a>
 
 <table border="1" cellpadding="5">
 <tr>
