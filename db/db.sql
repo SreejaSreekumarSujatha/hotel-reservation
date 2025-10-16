@@ -7,3 +7,6 @@ CREATE TABLE `hotel_db`.`rooms` (`id` INT NOT NULL AUTO_INCREMENT , `room_number
 <!--reservatiosn table-->
 CREATE TABLE `hotel_db`.`reservations` (`id` INT NOT NULL AUTO_INCREMENT , `user_id` INT NOT NULL , `room_id` INT NOT NULL , `check_in` DATE NOT NULL , `check_out` DATE NOT NULL , `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`),  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE) ENGINE = InnoDB;
+
+    ALTER TABLE reservations 
+ADD COLUMN total_amount DECIMAL(10,2) NOT NULL AFTER check_out;

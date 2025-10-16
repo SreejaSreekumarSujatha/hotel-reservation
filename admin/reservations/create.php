@@ -1,55 +1,40 @@
 <?php
 require __DIR__ . '/../../includes/db_connect.php';
 require __DIR__ . '/../../includes/functions.php';
-require_admin(); // Only admins can access
+require_admin();
 
-$error = '';
-$success = '';
+$user_id = $_POST['user_id'] ?? null;
+$room_id = $_POST['room_id'] ?? null;
+$check_in = $_POST['check_in'] ?? null;
+$check_out = $_POST['check_out'] ?? null;
 
-// Fetch all customers for the dropdown
-$users = $pdo->query("
-    SELECT id, name, email 
-    FROM users 
-    WHERE role='customer' 
-    ORDER BY name ASC
-")->fetchAll();
-
-// Fetch all rooms
-$rooms = $pdo->query("
-    SELECT id, room_number, type 
-    FROM rooms 
-    ORDER BY room_number ASC
-")->fetchAll();
-
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_id   = $_POST['user_id'] ?? '';
-    $room_id   = $_POST['room_id'] ?? '';
-    $check_in  = $_POST['check_in'] ?? '';
-    $check_out = $_POST['check_out'] ?? '';
-
-    // Basic validation
-    if (!$user_id || !$room_id || !$check_in || !$check_out) {
-        $error = 'All fields are required.';
-    } elseif ($check_out <= $check_in) {
-        $error = 'Check-out date must be after check-in date.';
-    } else {
-        // Insert reservation
-        $stmt = $pdo->prepare("
-            INSERT INTO reservations (user_id, room_id, check_in, check_out, created_at)
-            VALUES (:user_id, :room_id, :check_in, :check_out, NOW())
-        ");
-        $stmt->execute([
-            ':user_id'   => $user_id,
-            ':room_id'   => $room_id,
-            ':check_in'  => $check_in,
-            ':check_out' => $check_out
-        ]);
-
-        $success = 'Reservation created successfully!';
-        $_POST = []; // Clear form
-    }
+if (!$user_id || !$room_id || !$check_in || !$check_out) {
+    die("All fields are required.");
 }
 
-// Include the HTML form
-include __DIR__ . '/create_form.php';
+$checkInDate = new DateTime($check_in);
+$checkOutDate = new DateTime($check_out);
+$days = $checkInDate->diff($checkOutDate)->days;
+
+if ($days <= 0) {
+    die("Check-out date must be after check-in date.");
+}
+
+// Fetch room price
+$stmt = $pdo->prepare("SELECT price FROM rooms WHERE id = ?");
+$stmt->execute([$room_id]);
+$room = $stmt->fetch();
+
+if (!$room) die("Room not found.");
+
+$total_amount = $room['price'] * $days;
+
+// Insert reservation
+$stmt = $pdo->prepare("INSERT INTO reservations (user_id, room_id, check_in, check_out, total_amount) VALUES (?, ?, ?, ?, ?)");
+$stmt->execute([$user_id, $room_id, $check_in, $check_out, $total_amount]);
+
+// Update room status to booked
+$pdo->prepare("UPDATE rooms SET status = 'booked' WHERE id = ?")->execute([$room_id]);
+
+header("Location: index.php");
+exit;
