@@ -11,63 +11,138 @@ $rooms = $pdo->query("SELECT id, room_number, type, price FROM rooms WHERE statu
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Add Reservation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<h1>Add New Reservation</h1>
+<body class="bg-gray-100 min-h-screen flex flex-col">
 
-<form method="POST" action="create.php">
-    <label>Customer:</label><br>
-    <select name="user_id" id="user_id" required>
-        <option value="">-- Select Customer --</option>
-        <?php foreach ($users as $u): ?>
-            <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['name']) ?></option>
-        <?php endforeach; ?>
-    </select>
-    <button type="button" onclick="openCustomerModal()">+ Add Customer</button>
-    <br><br>
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg hidden transition-opacity duration-500">
+    Customer added successfully ✅
+</div>
 
-    <label>Room:</label><br>
-    <select name="room_id" required>
-        <option value="">-- Select Room --</option>
-        <?php foreach ($rooms as $r): ?>
-            <option value="<?= $r['id'] ?>"><?= htmlspecialchars($r['room_number']) ?> - <?= htmlspecialchars($r['type']) ?></option>
-        <?php endforeach; ?>
-    </select><br><br>
+<!-- Top Bar -->
+<header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-gray-800">Add Reservation</h1>
+    <a href="index.php" class="text-blue-600 hover:underline text-sm">← Back to Reservations</a>
+</header>
 
-    <label>Check-in:</label><br>
-    <input type="date" name="check_in" required><br><br>
+<!-- Main Container -->
+<main class="flex-1 p-6 max-w-2xl mx-auto bg-white shadow-lg rounded-lg mt-6">
+    <form method="POST" action="create.php" class="space-y-4">
+        <!-- Customer -->
+        <div>
+            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+            <div class="flex gap-2">
+                <select name="user_id" id="user_id" required
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+                    <option value="">-- Select Customer --</option>
+                    <?php foreach ($users as $u): ?>
+                        <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="button" onclick="openCustomerModal()"
+                        class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                    + Add
+                </button>
+            </div>
+            
+        </div>
 
-    <label>Check-out:</label><br>
-    <input type="date" name="check_out" required><br><br>
+        <!-- Room -->
+        <div>
+            <label for="room_id" class="block text-sm font-medium text-gray-700 mb-1">Room</label>
+            <select name="room_id" id="room_id" required
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+                <option value="">-- Select Room --</option>
+                <?php foreach ($rooms as $r): ?>
+                    <option value="<?= $r['id'] ?>">
+                        <?= htmlspecialchars($r['room_number']) ?> - <?= htmlspecialchars($r['type']) ?> ($<?= number_format($r['price'], 2) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-    <button type="submit">Add Reservation</button>
-</form>
+        <!-- Check-in -->
+        <div>
+            <label for="check_in" class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
+            <input type="date" name="check_in" id="check_in" required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+        </div>
 
-<p><a href="index.php">Back</a></p>
+        <!-- Check-out -->
+        <div>
+            <label for="check_out" class="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+            <input type="date" name="check_out" id="check_out" required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+            <button type="submit"
+                    class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition">
+                Add Reservation
+            </button>
+        </div>
+    </form>
+</main>
+
+<!-- Modal Backdrop -->
+<div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-50 hidden"></div>
 
 <!-- Modal for Adding Customer -->
-<div id="customerModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
-    background:#fff; padding:20px; border:1px solid #ccc; box-shadow:0px 0px 10px #999;">
-    <h3>Add New Customer</h3>
-    <label>Name:</label><br>
-    <input type="text" id="new_name"><br><br>
-    <label>Email:</label><br>
-    <input type="email" id="new_email"><br><br>
-    <label>Password:</label><br>
-    <input type="password" id="new_password"><br><br>
-    <button type="button" onclick="saveCustomer()">Save</button>
-    <button type="button" onclick="closeCustomerModal()">Cancel</button>
+<div id="customerModal"
+     class="fixed top-1/2 left-1/2 w-96 max-w-[90%] bg-white p-6 rounded shadow-lg transform -translate-x-1/2 -translate-y-1/2 hidden z-50">
+    <h3 class="text-lg font-bold mb-4 text-gray-800">Add New Customer</h3>
+
+    <div class="space-y-3">
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Name</label>
+            <input type="text" id="new_name"
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Email</label>
+            <input type="email" id="new_email"
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Password</label>
+            <input type="password" id="new_password"
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none">
+        </div>
+    </div>
+
+    <div class="mt-5 flex justify-end gap-3">
+        <button onclick="closeCustomerModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+        <button onclick="saveCustomer()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+    </div>
 </div>
 
 <script>
 function openCustomerModal() {
-    document.getElementById('customerModal').style.display = 'block';
+    document.getElementById('customerModal').classList.remove('hidden');
+    document.getElementById('modalBackdrop').classList.remove('hidden');
 }
+
 function closeCustomerModal() {
-    document.getElementById('customerModal').style.display = 'none';
+    document.getElementById('customerModal').classList.add('hidden');
+    document.getElementById('modalBackdrop').classList.add('hidden');
+}
+
+// Toast
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.remove('hidden', 'opacity-0');
+    toast.classList.add('opacity-100');
+    setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.classList.add('hidden'), 500);
+    }, 3000);
 }
 
 function saveCustomer() {
@@ -95,11 +170,13 @@ function saveCustomer() {
             option.selected = true;
             select.add(option);
             closeCustomerModal();
+            showToast('Customer added successfully ✅');
         } else {
             alert(data.message);
         }
     });
 }
 </script>
+
 </body>
 </html>

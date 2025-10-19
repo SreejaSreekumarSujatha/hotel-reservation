@@ -10,3 +10,7 @@ CREATE TABLE `hotel_db`.`reservations` (`id` INT NOT NULL AUTO_INCREMENT , `user
 
     ALTER TABLE reservations 
 ADD COLUMN total_amount DECIMAL(10,2) NOT NULL AFTER check_out;
+
+
+ALTER TABLE reservations 
+ADD status ENUM('pending', 'confirmed', 'cancelled') DEFAULT 'confirmed';

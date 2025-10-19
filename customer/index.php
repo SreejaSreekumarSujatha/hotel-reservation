@@ -1,50 +1,46 @@
 <?php
-session_start();
-require_once '../includes/db_connect.php';
-require_once '../includes/functions.php';
+require __DIR__ . '/../includes/db_connect.php';
+require __DIR__ . '/../includes/functions.php';
+require_login();
 
-// Fetch all available rooms
-$stmt = $pdo->query("SELECT id, name, type, price_per_night FROM rooms ORDER BY id DESC");
-$rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$user_id = current_user_id();
+
+// Fetch upcoming reservations
+$stmt = $pdo->prepare("
+    SELECT r.id, rm.room_number, r.check_in, r.check_out, r.status
+    FROM reservations r
+    JOIN rooms rm ON r.room_id = rm.id
+    WHERE r.user_id = ? AND r.check_in >= CURDATE()
+    ORDER BY r.check_in ASC
+");
+$stmt->execute([$user_id]);
+$reservations = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Available Rooms</title>
-    <style>
-        table { border-collapse: collapse; width: 80%; margin-top: 20px; }
-        th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
-        th { background: #f0f0f0; }
-    </style>
-</head>
+<head><title>Customer Dashboard</title></head>
 <body>
-<h1>Available Rooms</h1>
+<h1>Welcome, <?= e($_SESSION['user']['name']) ?></h1>
+<p><a href="reservations/index.php">My Reservations</a> | 
+<a href="profile/edit.php">My Profile</a> | 
+<a href="logout.php">Logout</a></p>
 
-<?php if (empty($rooms)): ?>
-    <p>No rooms available right now.</p>
+<h2>Upcoming Reservations</h2>
+<?php if ($reservations): ?>
+<table border="1" cellpadding="5">
+<tr><th>ID</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr>
+<?php foreach ($reservations as $r): ?>
+<tr>
+    <td><?= e($r['id']) ?></td>
+    <td><?= e($r['room_number']) ?></td>
+    <td><?= e($r['check_in']) ?></td>
+    <td><?= e($r['check_out']) ?></td>
+    <td><?= e($r['status']) ?></td>
+</tr>
+<?php endforeach; ?>
+</table>
 <?php else: ?>
-    <table>
-        <thead>
-            <tr>
-                <th>Room Name</th>
-                <th>Type</th>
-                <th>Price / Night</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($rooms as $room): ?>
-            <tr>
-                <td><?= htmlspecialchars($room['name']) ?></td>
-                <td><?= htmlspecialchars($room['type']) ?></td>
-                <td>$<?= number_format($room['price_per_night'], 2) ?></td>
-                <td><a href="book_room.php?room_id=<?= $room['id'] ?>">Book</a></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+<p>No upcoming reservations.</p>
 <?php endif; ?>
-
-<p><a href="../logout.php">Logout</a></p>
 </body>
 </html>
